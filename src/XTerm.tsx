@@ -1,7 +1,7 @@
 import { FitAddon } from '@xterm/addon-fit';
 import { Terminal } from '@xterm/xterm';
 import type React from 'react';
-import { useEffect, useRef } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 
 import '@xterm/xterm/css/xterm.css';
 
@@ -10,10 +10,15 @@ export interface XTermProps extends React.HTMLAttributes<HTMLDivElement> {
   writer?: WritableStreamDefaultWriter<string>;
 }
 
-export function XTerm({ reader, writer, ...props }: XTermProps) {
+export const XTerm = forwardRef<Terminal, XTermProps>(function XTerm(
+  { reader, writer, ...props }: XTermProps,
+  ref,
+) {
   const container = useRef<HTMLDivElement>(null);
   const terminal = useRef(new Terminal());
   const fitAddon = useRef(new FitAddon());
+
+  useImperativeHandle(ref, () => terminal.current, []);
 
   // XTerm
   useEffect(() => {
@@ -60,4 +65,4 @@ export function XTerm({ reader, writer, ...props }: XTermProps) {
   }, [writer]);
 
   return <div ref={container} {...props} />;
-}
+});

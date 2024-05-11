@@ -12,15 +12,23 @@ export function useXTermSerial() {
     reader,
     writer,
     closed,
-    open: async (options: XTermSerialOptions) => {
-      await serial.current.open(options);
-      setReader(serial.current.reader);
-      setWriter(serial.current.writer);
-      setClosed(false);
-    },
-    close: async () => {
-      await serial.current.close();
-      setClosed(true);
-    },
+    open: (options: XTermSerialOptions) =>
+      serial.current
+        .open(options)
+        .then(() => {
+          setReader(serial.current.reader);
+          setWriter(serial.current.writer);
+          setClosed(false);
+        })
+        .catch((e) => window.alert(e)),
+    close: () =>
+      serial.current
+        .close()
+        .then(() => {
+          setReader(undefined);
+          setWriter(undefined);
+          setClosed(true);
+        })
+        .catch((e) => window.alert(e)),
   };
 }

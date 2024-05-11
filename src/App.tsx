@@ -6,6 +6,8 @@ import {
   Select,
   Stack,
 } from '@mui/material';
+import type { Terminal } from '@xterm/xterm';
+import { useRef } from 'react';
 import { XTerm } from './XTerm';
 import type { NewlineCharacter, XTermSerialOptions } from './XTermSerial';
 import { useLocalStorage } from './useLocalStorage';
@@ -32,16 +34,17 @@ export function App() {
       receiveNewline: NEWLINE_CHARACTER[2],
       transmitNewline: NEWLINE_CHARACTER[0],
     });
-
   const updateOptions = (newOptions: Partial<XTermSerialOptions>) => {
     setOptions({ ...options, ...newOptions });
   };
 
+  const terminal = useRef<Terminal>(null);
   const { reader, writer, closed, open, close } = useXTermSerial();
 
   return (
     <Stack direction="row">
       <XTerm
+        ref={terminal}
         reader={reader}
         writer={writer}
         style={{ width: '100%', height: '100dvh' }}
@@ -195,19 +198,14 @@ export function App() {
 
           <Button
             variant="contained"
-            color="primary"
-            disabled={!closed}
-            onClick={() => open(options)}
+            color={closed ? 'success' : 'secondary'}
+            onClick={closed ? () => open(options) : close}
           >
-            Open
+            {closed ? 'Open' : 'Close'}
           </Button>
-          <Button
-            variant="contained"
-            color="secondary"
-            disabled={closed}
-            onClick={close}
-          >
-            Close
+
+          <Button variant="contained" onClick={() => terminal.current?.reset()}>
+            Clear
           </Button>
         </Stack>
 
