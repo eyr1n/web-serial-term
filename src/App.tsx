@@ -24,19 +24,19 @@ const FLOW_CONTROL: FlowControlType[] = ['none', 'hardware'];
 const NEWLINE_CHARACTER: NewlineCharacter[] = ['CR', 'LF', 'CR+LF'];
 
 export function App() {
-  const [options, setOptions, resetOptions] =
-    useLocalStorage<XTermSerialOptions>('aaaaaa', {
-      baudRate: BAUD_RATE[11],
-      dataBits: DATA_BITS[1],
-      stopBits: STOP_BITS[0],
-      parity: PARITY[0],
-      flowControl: FLOW_CONTROL[0],
-      receiveNewline: NEWLINE_CHARACTER[2],
-      transmitNewline: NEWLINE_CHARACTER[0],
-    });
-  const updateOptions = (newOptions: Partial<XTermSerialOptions>) => {
-    setOptions({ ...options, ...newOptions });
+  const defaultOptions: XTermSerialOptions = {
+    baudRate: BAUD_RATE[11],
+    dataBits: DATA_BITS[1],
+    stopBits: STOP_BITS[0],
+    parity: PARITY[0],
+    flowControl: FLOW_CONTROL[0],
+    receiveNewline: NEWLINE_CHARACTER[2],
+    transmitNewline: NEWLINE_CHARACTER[0],
   };
+  const [options, setOptions] = useLocalStorage('options', defaultOptions);
+  const updateOptions = (options: Partial<XTermSerialOptions>) =>
+    setOptions((prev) => ({ ...prev, ...options }));
+  const resetOptions = () => setOptions(defaultOptions);
 
   const terminal = useRef<Terminal>(null);
   const { reader, writer, closed, open, close } = useXTermSerial();
