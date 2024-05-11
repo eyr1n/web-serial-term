@@ -47,7 +47,12 @@ export function App() {
         ref={terminal}
         reader={reader}
         writer={writer}
-        style={{ width: '100%', height: '100dvh' }}
+        style={{
+          width: '100%',
+          height: '100dvh',
+          overflow: 'hidden',
+          backgroundColor: '#000000',
+        }}
       />
 
       <Stack
