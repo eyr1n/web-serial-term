@@ -20,7 +20,10 @@ export class XTermSerial {
     transmitNewline,
     ...options
   }: XTermSerialOptions) {
-    this.#port = await navigator.serial.requestPort();
+    this.#port = await navigator.serial.requestPort().catch(() => undefined);
+    if (!this.#port) {
+      return false;
+    }
     await this.#port.open(options);
     if (!this.#port.readable || !this.#port.writable) {
       throw new Error('The port is not readable and writable.');
@@ -35,6 +38,8 @@ export class XTermSerial {
       .pipeThrough(new XTermSerialTransmitStream(transmitNewline))
       .pipeTo(this.#port.writable);
     this.#writer = writerStream.writable.getWriter();
+
+    return true;
   }
 
   async close() {

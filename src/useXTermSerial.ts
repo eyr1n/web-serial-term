@@ -15,11 +15,11 @@ export function useXTermSerial() {
     writer,
     closed,
     open: (options: XTermSerialOptions) =>
-      serial.current.open(options).then(() => {
+      serial.current.open(options).then((result) => {
         setPort(serial.current.port);
         setReader(serial.current.reader);
         setWriter(serial.current.writer);
-        setClosed(false);
+        setClosed(!result);
       }),
     close: () =>
       serial.current.close().then(() => {

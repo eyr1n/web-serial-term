@@ -5,7 +5,6 @@ import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 
 import '@xterm/xterm/css/xterm.css';
 import { WebglAddon } from '@xterm/addon-webgl';
-import { StreamAddon } from './StreamAddon';
 
 export interface XTermProps extends React.HTMLAttributes<HTMLDivElement> {
   reader?: ReadableStreamDefaultReader<string | Uint8Array>;
@@ -48,16 +47,50 @@ export const XTerm = forwardRef<Terminal, XTermProps>(function XTerm(
     };
   }, []);
 
+  // Reader
   useEffect(() => {
-    if (!container.current || !reader || !writer) {
+    if (!reader) {
       return;
     }
-    const streamAddon = new StreamAddon(reader, writer);
-    terminal.current.loadAddon(streamAddon);
-    return () => {
-      streamAddon.dispose();
+    const controller = new AbortController();
+    const readLoop = ({
+      value,
+      done,
+    }: ReadableStreamReadResult<string | Uint8Array>) => {
+      if (done) {
+        reader.releaseLock();
+        return;
+      }
+      terminal.current?.write(value);
+      abortable(reader.read(), controller.signal)
+        .then(readLoop)
+        .catch(() => {});
     };
-  }, [reader, writer]);
+    abortable(reader.read(), controller.signal)
+      .then(readLoop)
+      .catch(() => {});
+    return () => {
+      controller.abort();
+    };
+  }, [reader]);
+
+  // Writer
+  useEffect(() => {
+    if (!writer) {
+      return;
+    }
+    const onData = terminal.current.onData((data) => writer.write(data));
+    return () => {
+      onData.dispose();
+    };
+  }, [writer]);
 
   return <div ref={container} {...props} />;
 });
+
+function abortable<T>(promise: Promise<T>, signal: AbortSignal) {
+  return new Promise<T>((resolve, reject) => {
+    promise.then(resolve);
+    signal.addEventListener('abort', reject, { once: true });
+  });
+}
