@@ -45,6 +45,10 @@ export class XTermSerial {
     await this.#port?.close();
   }
 
+  get port() {
+    return this.#port;
+  }
+
   get reader() {
     return this.#reader;
   }

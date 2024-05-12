@@ -8,7 +8,7 @@ import {
   TextField,
 } from '@mui/material';
 import type { Terminal } from '@xterm/xterm';
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { XTerm } from './XTerm';
 import type { NewlineCharacter, XTermSerialOptions } from './XTermSerial';
 import { useLocalStorage } from './useLocalStorage';
@@ -53,7 +53,21 @@ export function App() {
   };
 
   const terminal = useRef<Terminal>(null);
-  const { reader, writer, closed, open, close } = useXTermSerial();
+  const { port, reader, writer, closed, open, close } = useXTermSerial();
+
+  useEffect(() => {
+    if (!port) {
+      return;
+    }
+    const listener = () => {
+      alert('The device has been lost.');
+      close();
+    };
+    port.addEventListener('disconnect', listener);
+    return () => {
+      port.removeEventListener('disconnect', listener);
+    };
+  }, [close, port]);
 
   return (
     <Stack direction="row">
@@ -240,8 +254,8 @@ export function App() {
                     open({
                       ...options,
                       bufferSize: Number.parseInt(bufferSize),
-                    })
-                : close
+                    }).catch(alert)
+                : () => close().catch(alert)
             }
           >
             {closed ? 'Open' : 'Close'} port
