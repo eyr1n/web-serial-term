@@ -90,7 +90,7 @@ export function App() {
           p: 2,
           minWidth: '320px',
           height: '100dvh',
-          overflowY: 'scroll',
+          overflowY: 'auto',
         }}
       >
         <Stack spacing={2}>
