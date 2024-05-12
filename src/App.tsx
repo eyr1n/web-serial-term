@@ -5,9 +5,10 @@ import {
   MenuItem,
   Select,
   Stack,
+  TextField,
 } from '@mui/material';
 import type { Terminal } from '@xterm/xterm';
-import { useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { XTerm } from './XTerm';
 import type { NewlineCharacter, XTermSerialOptions } from './XTermSerial';
 import { useLocalStorage } from './useLocalStorage';
@@ -23,20 +24,33 @@ const PARITY: ParityType[] = ['none', 'even', 'odd'];
 const FLOW_CONTROL: FlowControlType[] = ['none', 'hardware'];
 const NEWLINE_CHARACTER: NewlineCharacter[] = ['CR', 'LF', 'CR+LF'];
 
+const DEFAULT_OPTIONS: XTermSerialOptions = {
+  baudRate: BAUD_RATE[11],
+  dataBits: DATA_BITS[1],
+  stopBits: STOP_BITS[0],
+  parity: PARITY[0],
+  flowControl: FLOW_CONTROL[0],
+  receiveNewline: NEWLINE_CHARACTER[2],
+  transmitNewline: NEWLINE_CHARACTER[0],
+};
+const DEFAULT_BUFFER_SIZE = '255';
+
 export function App() {
-  const defaultOptions: XTermSerialOptions = {
-    baudRate: BAUD_RATE[11],
-    dataBits: DATA_BITS[1],
-    stopBits: STOP_BITS[0],
-    parity: PARITY[0],
-    flowControl: FLOW_CONTROL[0],
-    receiveNewline: NEWLINE_CHARACTER[2],
-    transmitNewline: NEWLINE_CHARACTER[0],
-  };
-  const [options, setOptions] = useLocalStorage('options', defaultOptions);
+  const [options, setOptions] = useLocalStorage('options', DEFAULT_OPTIONS);
+  const [bufferSize, setBufferSize] = useLocalStorage(
+    'bufferSize',
+    DEFAULT_BUFFER_SIZE,
+  );
+  const bufferSizeError = useMemo(() => {
+    const value = Number.parseInt(bufferSize);
+    return Number.isNaN(value) || value < 1;
+  }, [bufferSize]);
   const updateOptions = (options: Partial<XTermSerialOptions>) =>
     setOptions((prev) => ({ ...prev, ...options }));
-  const resetOptions = () => setOptions(defaultOptions);
+  const resetOptions = () => {
+    setOptions(DEFAULT_OPTIONS);
+    setBufferSize(DEFAULT_BUFFER_SIZE);
+  };
 
   const terminal = useRef<Terminal>(null);
   const { reader, writer, closed, open, close } = useXTermSerial();
@@ -66,23 +80,38 @@ export function App() {
         }}
       >
         <Stack spacing={2}>
-          <FormControl fullWidth>
-            <InputLabel>Baud rate</InputLabel>
-            <Select
-              label="Baud rate"
-              disabled={!closed}
-              value={options.baudRate}
-              onChange={(e) =>
-                updateOptions({ baudRate: e.target.value as number })
-              }
-            >
-              {BAUD_RATE.map((x) => (
-                <MenuItem key={x} value={x}>
-                  {x}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <Stack direction="row" spacing={2}>
+            <FormControl fullWidth>
+              <InputLabel>Baud rate</InputLabel>
+              <Select
+                label="Baud rate"
+                disabled={!closed}
+                value={options.baudRate}
+                onChange={(e) =>
+                  updateOptions({ baudRate: e.target.value as number })
+                }
+              >
+                {BAUD_RATE.map((x) => (
+                  <MenuItem key={x} value={x}>
+                    {x}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl fullWidth>
+              <TextField
+                label="Buffer size"
+                error={bufferSizeError}
+                disabled={!closed}
+                value={bufferSize}
+                onChange={(e) => {
+                  if (/^[0-9]*$/.test(e.target.value)) {
+                    setBufferSize(e.target.value);
+                  }
+                }}
+              />
+            </FormControl>
+          </Stack>
 
           <Stack direction="row" spacing={2}>
             <FormControl fullWidth>
@@ -204,13 +233,22 @@ export function App() {
           <Button
             variant="contained"
             color={closed ? 'success' : 'secondary'}
-            onClick={closed ? () => open(options) : close}
+            disabled={bufferSizeError}
+            onClick={
+              closed
+                ? () =>
+                    open({
+                      ...options,
+                      bufferSize: Number.parseInt(bufferSize),
+                    })
+                : close
+            }
           >
-            {closed ? 'Open' : 'Close'}
+            {closed ? 'Open' : 'Close'} port
           </Button>
 
           <Button variant="contained" onClick={() => terminal.current?.reset()}>
-            Clear
+            Reset terminal
           </Button>
         </Stack>
 
@@ -220,7 +258,7 @@ export function App() {
           disabled={!closed}
           onClick={resetOptions}
         >
-          Reset
+          Reset options
         </Button>
       </Stack>
     </Stack>

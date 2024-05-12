@@ -23,7 +23,7 @@ export class XTermSerial {
     this.#port = await navigator.serial.requestPort();
     await this.#port.open(options);
     if (!this.#port.readable || !this.#port.writable) {
-      return;
+      throw new Error('The port is not readable and writable.');
     }
 
     const readerStream = new XTermSerialReceiveStream(receiveNewline);

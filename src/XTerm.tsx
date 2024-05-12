@@ -50,7 +50,9 @@ export const XTerm = forwardRef<Terminal, XTermProps>(function XTerm(
           return;
         }
         terminal.current?.write(value);
-        abortable(reader.read(), controller.signal).then(loop);
+        abortable(reader.read(), controller.signal)
+          .then(loop)
+          .catch(() => {});
       })
       .catch(() => {});
     return () => {
@@ -63,9 +65,7 @@ export const XTerm = forwardRef<Terminal, XTermProps>(function XTerm(
     if (!writer) {
       return;
     }
-    const onData = terminal.current.onData(async (data) => {
-      await writer.write(data);
-    });
+    const onData = terminal.current.onData((data) => writer.write(data));
     return () => {
       onData.dispose();
     };
