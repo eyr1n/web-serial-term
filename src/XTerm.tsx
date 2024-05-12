@@ -16,21 +16,22 @@ export const XTerm = forwardRef<Terminal, XTermProps>(function XTerm(
 ) {
   const container = useRef<HTMLDivElement>(null);
   const terminal = useRef(new Terminal());
-  const fitAddon = useRef(new FitAddon());
 
   useImperativeHandle(ref, () => terminal.current, []);
 
   // XTerm
   useEffect(() => {
-    const observer = new ResizeObserver(() => {
-      fitAddon.current.fit();
-    });
-    if (container.current) {
-      terminal.current.loadAddon(fitAddon.current);
-      terminal.current.open(container.current);
-      fitAddon.current.fit();
-      observer.observe(container.current);
+    if (!container.current) {
+      return;
     }
+    const fitAddon = new FitAddon();
+    const observer = new ResizeObserver(() => {
+      fitAddon.fit();
+    });
+    terminal.current.loadAddon(fitAddon);
+    terminal.current.open(container.current);
+    fitAddon.fit();
+    observer.observe(container.current);
     return () => {
       observer.disconnect();
     };
@@ -38,22 +39,28 @@ export const XTerm = forwardRef<Terminal, XTermProps>(function XTerm(
 
   // Reader
   useEffect(() => {
-    if (!terminal.current || !reader) {
+    if (!reader) {
       return;
     }
-    reader.read().then(function loop({ value, done }) {
-      if (done) {
-        reader.releaseLock();
-        return;
-      }
-      terminal.current?.write(value);
-      reader.read().then(loop);
-    });
+    const controller = new AbortController();
+    abortable(reader.read(), controller.signal)
+      .then(function loop({ value, done }) {
+        if (done) {
+          reader.releaseLock();
+          return;
+        }
+        terminal.current?.write(value);
+        abortable(reader.read(), controller.signal).then(loop);
+      })
+      .catch(() => {});
+    return () => {
+      controller.abort();
+    };
   }, [reader]);
 
   // Writer
   useEffect(() => {
-    if (!terminal.current || !writer) {
+    if (!writer) {
       return;
     }
     const onData = terminal.current.onData(async (data) => {
@@ -66,3 +73,10 @@ export const XTerm = forwardRef<Terminal, XTermProps>(function XTerm(
 
   return <div ref={container} {...props} />;
 });
+
+function abortable<T>(promise: Promise<T>, signal: AbortSignal) {
+  return new Promise<T>((resolve, reject) => {
+    promise.then(resolve);
+    signal.addEventListener('abort', reject, { once: true });
+  });
+}
