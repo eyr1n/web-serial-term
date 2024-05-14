@@ -1,10 +1,10 @@
 import { FitAddon } from '@xterm/addon-fit';
+import { WebglAddon } from '@xterm/addon-webgl';
 import { Terminal } from '@xterm/xterm';
 import type React from 'react';
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 
 import '@xterm/xterm/css/xterm.css';
-import { WebglAddon } from '@xterm/addon-webgl';
 
 export interface XTermProps extends React.HTMLAttributes<HTMLDivElement> {
   reader?: ReadableStreamDefaultReader<string | Uint8Array>;
