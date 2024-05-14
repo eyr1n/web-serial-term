@@ -33,7 +33,6 @@ export const XTerm = forwardRef<Terminal, XTermProps>(function XTerm(
 
     const listener = webglAddon.onContextLoss(() => {
       webglAddon.dispose();
-      terminal.current.loadAddon(webglAddon);
     });
     const observer = new ResizeObserver(() => {
       fitAddon.fit();
@@ -90,7 +89,7 @@ export const XTerm = forwardRef<Terminal, XTermProps>(function XTerm(
 
 function abortable<T>(promise: Promise<T>, signal: AbortSignal) {
   return new Promise<T>((resolve, reject) => {
-    promise.then(resolve);
     signal.addEventListener('abort', reject, { once: true });
+    promise.then(resolve, reject);
   });
 }
