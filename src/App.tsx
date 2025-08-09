@@ -70,213 +70,207 @@ export function App() {
   }, [close, port]);
 
   return (
-    <>
-      <Stack direction="row">
-        <XTerm
-          ref={terminal}
-          reader={reader}
-          writer={writer}
-          style={{
-            width: '100%',
-            height: '100dvh',
-            overflow: 'hidden',
-            backgroundColor: '#000000',
-          }}
-        />
+    <Stack direction="row">
+      <XTerm
+        ref={terminal}
+        reader={reader}
+        writer={writer}
+        style={{
+          width: '100%',
+          height: '100dvh',
+          overflow: 'hidden',
+          backgroundColor: '#000000',
+        }}
+      />
 
-        <Stack
-          justifyContent="space-between"
-          spacing={2}
-          sx={{
-            p: 2,
-            minWidth: '320px',
-            height: '100dvh',
-            overflowY: 'auto',
-          }}
-        >
-          <Stack spacing={2}>
-            <Stack direction="row" spacing={2}>
-              <FormControl fullWidth>
-                <InputLabel>Baud rate</InputLabel>
-                <Select
-                  label="Baud rate"
-                  disabled={!closed}
-                  value={options.baudRate}
-                  onChange={(e) =>
-                    updateOptions({ baudRate: e.target.value as number })
+      <Stack
+        justifyContent="space-between"
+        spacing={2}
+        sx={{
+          p: 2,
+          minWidth: '320px',
+          height: '100dvh',
+          overflowY: 'auto',
+        }}
+      >
+        <Stack spacing={2}>
+          <Stack direction="row" spacing={2}>
+            <FormControl fullWidth>
+              <InputLabel>Baud rate</InputLabel>
+              <Select
+                label="Baud rate"
+                disabled={!closed}
+                value={options.baudRate}
+                onChange={(e) =>
+                  updateOptions({ baudRate: e.target.value as number })
+                }
+              >
+                {BAUD_RATE.map((x) => (
+                  <MenuItem key={x} value={x}>
+                    {x}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl fullWidth>
+              <TextField
+                label="Buffer size"
+                error={bufferSizeError}
+                disabled={!closed}
+                value={bufferSize}
+                onChange={(e) => {
+                  if (/^[0-9]*$/.test(e.target.value)) {
+                    setBufferSize(e.target.value);
                   }
-                >
-                  {BAUD_RATE.map((x) => (
-                    <MenuItem key={x} value={x}>
-                      {x}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <FormControl fullWidth>
-                <TextField
-                  label="Buffer size"
-                  error={bufferSizeError}
-                  disabled={!closed}
-                  value={bufferSize}
-                  onChange={(e) => {
-                    if (/^[0-9]*$/.test(e.target.value)) {
-                      setBufferSize(e.target.value);
-                    }
-                  }}
-                />
-              </FormControl>
-            </Stack>
+                }}
+              />
+            </FormControl>
+          </Stack>
 
-            <Stack direction="row" spacing={2}>
-              <FormControl fullWidth>
-                <InputLabel>Data bits</InputLabel>
-                <Select
-                  label="Data bits"
-                  disabled={!closed}
-                  value={options.dataBits}
-                  onChange={(e) => updateOptions({ dataBits: e.target.value })}
-                >
-                  {DATA_BITS.map((x) => (
-                    <MenuItem key={x} value={x}>
-                      {x}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <FormControl fullWidth>
-                <InputLabel>Stop bits</InputLabel>
-                <Select
-                  label="Stop bits"
-                  disabled={!closed}
-                  value={options.stopBits}
-                  onChange={(e) => updateOptions({ stopBits: e.target.value })}
-                >
-                  {STOP_BITS.map((x) => (
-                    <MenuItem key={x} value={x}>
-                      {x}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Stack>
+          <Stack direction="row" spacing={2}>
+            <FormControl fullWidth>
+              <InputLabel>Data bits</InputLabel>
+              <Select
+                label="Data bits"
+                disabled={!closed}
+                value={options.dataBits}
+                onChange={(e) => updateOptions({ dataBits: e.target.value })}
+              >
+                {DATA_BITS.map((x) => (
+                  <MenuItem key={x} value={x}>
+                    {x}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl fullWidth>
+              <InputLabel>Stop bits</InputLabel>
+              <Select
+                label="Stop bits"
+                disabled={!closed}
+                value={options.stopBits}
+                onChange={(e) => updateOptions({ stopBits: e.target.value })}
+              >
+                {STOP_BITS.map((x) => (
+                  <MenuItem key={x} value={x}>
+                    {x}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Stack>
 
-            <Stack direction="row" spacing={2}>
-              <FormControl fullWidth>
-                <InputLabel>Parity</InputLabel>
-                <Select
-                  label="Parity"
-                  disabled={!closed}
-                  value={options.parity}
-                  onChange={(e) =>
-                    updateOptions({ parity: e.target.value as ParityType })
-                  }
-                >
-                  {PARITY.map((x) => (
-                    <MenuItem key={x} value={x}>
-                      {x}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <FormControl fullWidth>
-                <InputLabel>Flow control</InputLabel>
-                <Select
-                  label="Flow control"
-                  disabled={!closed}
-                  value={options.flowControl}
-                  onChange={(e) =>
-                    updateOptions({
-                      flowControl: e.target.value as FlowControlType,
-                    })
-                  }
-                >
-                  {FLOW_CONTROL.map((x) => (
-                    <MenuItem key={x} value={x}>
-                      {x}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Stack>
+          <Stack direction="row" spacing={2}>
+            <FormControl fullWidth>
+              <InputLabel>Parity</InputLabel>
+              <Select
+                label="Parity"
+                disabled={!closed}
+                value={options.parity}
+                onChange={(e) =>
+                  updateOptions({ parity: e.target.value as ParityType })
+                }
+              >
+                {PARITY.map((x) => (
+                  <MenuItem key={x} value={x}>
+                    {x}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl fullWidth>
+              <InputLabel>Flow control</InputLabel>
+              <Select
+                label="Flow control"
+                disabled={!closed}
+                value={options.flowControl}
+                onChange={(e) =>
+                  updateOptions({
+                    flowControl: e.target.value as FlowControlType,
+                  })
+                }
+              >
+                {FLOW_CONTROL.map((x) => (
+                  <MenuItem key={x} value={x}>
+                    {x}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Stack>
 
-            <Stack direction="row" spacing={2}>
-              <FormControl fullWidth>
-                <InputLabel>Receive newline</InputLabel>
-                <Select
-                  label="Receive newline"
-                  disabled={!closed}
-                  value={options.receiveNewline}
-                  onChange={(e) =>
-                    updateOptions({
-                      receiveNewline: e.target.value as NewlineCharacter,
-                    })
-                  }
-                >
-                  {NEWLINE_CHARACTER.map((x) => (
-                    <MenuItem key={x} value={x}>
-                      {x}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <FormControl fullWidth>
-                <InputLabel>Transmit newline</InputLabel>
-                <Select
-                  label="Transmit newline"
-                  disabled={!closed}
-                  value={options.transmitNewline}
-                  onChange={(e) =>
-                    updateOptions({
-                      transmitNewline: e.target.value as NewlineCharacter,
-                    })
-                  }
-                >
-                  {NEWLINE_CHARACTER.map((x) => (
-                    <MenuItem key={x} value={x}>
-                      {x}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Stack>
-
-            <Button
-              variant="contained"
-              color={closed ? 'success' : 'secondary'}
-              disabled={bufferSizeError}
-              onClick={
-                closed
-                  ? () =>
-                      open({
-                        ...options,
-                        bufferSize: Number.parseInt(bufferSize),
-                      }).catch(alert)
-                  : () => close().catch(alert)
-              }
-            >
-              {closed ? 'Open' : 'Close'} port
-            </Button>
-
-            <Button
-              variant="contained"
-              onClick={() => terminal.current?.reset()}
-            >
-              Reset terminal
-            </Button>
+          <Stack direction="row" spacing={2}>
+            <FormControl fullWidth>
+              <InputLabel>Receive newline</InputLabel>
+              <Select
+                label="Receive newline"
+                disabled={!closed}
+                value={options.receiveNewline}
+                onChange={(e) =>
+                  updateOptions({
+                    receiveNewline: e.target.value as NewlineCharacter,
+                  })
+                }
+              >
+                {NEWLINE_CHARACTER.map((x) => (
+                  <MenuItem key={x} value={x}>
+                    {x}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl fullWidth>
+              <InputLabel>Transmit newline</InputLabel>
+              <Select
+                label="Transmit newline"
+                disabled={!closed}
+                value={options.transmitNewline}
+                onChange={(e) =>
+                  updateOptions({
+                    transmitNewline: e.target.value as NewlineCharacter,
+                  })
+                }
+              >
+                {NEWLINE_CHARACTER.map((x) => (
+                  <MenuItem key={x} value={x}>
+                    {x}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Stack>
 
           <Button
             variant="contained"
-            color="error"
-            disabled={!closed}
-            onClick={resetOptions}
+            color={closed ? 'success' : 'secondary'}
+            disabled={bufferSizeError}
+            onClick={
+              closed
+                ? () =>
+                    open({
+                      ...options,
+                      bufferSize: Number.parseInt(bufferSize),
+                    }).catch(alert)
+                : () => close().catch(alert)
+            }
           >
-            Reset options
+            {closed ? 'Open' : 'Close'} port
+          </Button>
+
+          <Button variant="contained" onClick={() => terminal.current?.reset()}>
+            Reset terminal
           </Button>
         </Stack>
+
+        <Button
+          variant="contained"
+          color="error"
+          disabled={!closed}
+          onClick={resetOptions}
+        >
+          Reset options
+        </Button>
       </Stack>
-      {/* <PWABadge /> */}
-    </>
+    </Stack>
   );
 }
