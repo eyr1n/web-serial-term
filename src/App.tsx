@@ -9,17 +9,17 @@ import {
 } from '@mui/material';
 import type { Terminal } from '@xterm/xterm';
 import { useEffect, useMemo, useRef } from 'react';
-import { XTerm } from './XTerm';
-import type { NewlineCharacter, XTermSerialOptions } from './XTermSerial';
 import { useLocalStorage } from './useLocalStorage';
 import { useXTermSerial } from './useXTermSerial';
+import { XTerm } from './XTerm';
+import type { NewlineCharacter, XTermSerialOptions } from './XTermSerial';
 
 const BAUD_RATE = [
   110, 300, 600, 1200, 2400, 4800, 9600, 14400, 19200, 38400, 57600, 115200,
   128000, 230400, 460800, 921600,
 ];
-const DATA_BITS = [7, 8];
-const STOP_BITS = [1, 2];
+const DATA_BITS = [7, 8] as const;
+const STOP_BITS = [1, 2] as const;
 const PARITY: ParityType[] = ['none', 'even', 'odd'];
 const FLOW_CONTROL: FlowControlType[] = ['none', 'hardware'];
 const NEWLINE_CHARACTER: NewlineCharacter[] = ['CR', 'LF', 'CR+LF'];
@@ -135,9 +135,7 @@ export function App() {
                   label="Data bits"
                   disabled={!closed}
                   value={options.dataBits}
-                  onChange={(e) =>
-                    updateOptions({ dataBits: e.target.value as number })
-                  }
+                  onChange={(e) => updateOptions({ dataBits: e.target.value })}
                 >
                   {DATA_BITS.map((x) => (
                     <MenuItem key={x} value={x}>
@@ -152,9 +150,7 @@ export function App() {
                   label="Stop bits"
                   disabled={!closed}
                   value={options.stopBits}
-                  onChange={(e) =>
-                    updateOptions({ stopBits: e.target.value as number })
-                  }
+                  onChange={(e) => updateOptions({ stopBits: e.target.value })}
                 >
                   {STOP_BITS.map((x) => (
                     <MenuItem key={x} value={x}>
