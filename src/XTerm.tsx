@@ -1,33 +1,32 @@
 import { FitAddon } from '@xterm/addon-fit';
 import { WebglAddon } from '@xterm/addon-webgl';
-import { Terminal } from '@xterm/xterm';
+import type { ITerminalInitOnlyOptions, ITerminalOptions } from '@xterm/xterm';
 import type React from 'react';
-import { useEffect, useImperativeHandle, useRef } from 'react';
+import { useEffect, useRef } from 'react';
+import { StreamTerminal } from './StreamTerminal';
 
 import '@xterm/xterm/css/xterm.css';
 
 export interface XTermProps extends React.HTMLAttributes<HTMLDivElement> {
-  ref: React.RefObject<Terminal | null>;
-  reader?: ReadableStreamDefaultReader<string | Uint8Array>;
-  writer?: WritableStreamDefaultWriter<string>;
+  ref: React.RefObject<StreamTerminal | null>;
+  options?: ITerminalOptions & ITerminalInitOnlyOptions;
 }
 
-export function XTerm({ ref, reader, writer, ...props }: XTermProps) {
+export function XTerm({ ref, options, ...props }: XTermProps) {
   const container = useRef<HTMLDivElement>(null);
-  const terminal = useRef(new Terminal());
-
-  useImperativeHandle(ref, () => terminal.current, []);
 
   useEffect(() => {
     if (!container.current) {
       return;
     }
+    const terminal = new StreamTerminal(options);
     const webglAddon = new WebglAddon();
     const fitAddon = new FitAddon();
-    terminal.current.loadAddon(webglAddon);
-    terminal.current.loadAddon(fitAddon);
-    terminal.current.open(container.current);
+    terminal.loadAddon(webglAddon);
+    terminal.loadAddon(fitAddon);
+    terminal.open(container.current);
     fitAddon.fit();
+    ref.current = terminal;
 
     const listener = webglAddon.onContextLoss(() => {
       webglAddon.dispose();
@@ -41,14 +40,32 @@ export function XTerm({ ref, reader, writer, ...props }: XTermProps) {
       observer.disconnect();
       listener.dispose();
       webglAddon.dispose();
+      fitAddon.dispose();
+      terminal.dispose();
+      ref.current = null;
     };
-  }, []);
+  }, [ref, options]);
 
-  // Reader
-  useEffect(() => {
-    if (!reader) {
-      return;
+  /* useEffect(() => {
+    const controller = new AbortController();
+    if (readable && ref.current) {
+      readable.pipeTo(ref.current.writable, { signal: controller.signal });
     }
+    if (writable) {
+      ref.current?.readable.pipeTo(writable, { signal: controller.signal });
+    }
+    return () => {
+      controller.abort();
+    };
+  }, [readable, writable, ref]);
+ */
+  return <div ref={container} {...props} />;
+}
+/* 
+import { Terminal } from '@xterm/xterm';
+
+export class StreamTerminal extends Terminal {
+  pipeToReader(reader: ReadableStreamDefaultReader<string | Uint8Array>) {
     const controller = new AbortController();
     const readLoop = ({
       value,
@@ -58,7 +75,7 @@ export function XTerm({ ref, reader, writer, ...props }: XTermProps) {
         reader.releaseLock();
         return;
       }
-      terminal.current?.write(value);
+      this.write(value);
       abortable(reader.read(), controller.signal)
         .then(readLoop)
         .catch(() => {});
@@ -69,20 +86,14 @@ export function XTerm({ ref, reader, writer, ...props }: XTermProps) {
     return () => {
       controller.abort();
     };
-  }, [reader]);
+  }
 
-  // Writer
-  useEffect(() => {
-    if (!writer) {
-      return;
-    }
-    const onData = terminal.current.onData((data) => writer.write(data));
+  pipeToWriter(writer: WritableStreamDefaultWriter<string>) {
+    const onData = this.onData((data) => writer.write(data));
     return () => {
       onData.dispose();
     };
-  }, [writer]);
-
-  return <div ref={container} {...props} />;
+  }
 }
 
 function abortable<T>(promise: Promise<T>, signal: AbortSignal) {
@@ -91,3 +102,4 @@ function abortable<T>(promise: Promise<T>, signal: AbortSignal) {
     promise.then(resolve, reject);
   });
 }
+ */
