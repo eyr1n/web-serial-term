@@ -7,9 +7,9 @@ import {
   Stack,
   TextField,
 } from '@mui/material';
+import { useLocalStorage } from '@uidotdev/usehooks';
 import type { Terminal } from '@xterm/xterm';
 import { useEffect, useMemo, useRef } from 'react';
-import { useLocalStorage } from './useLocalStorage';
 import { useXTermSerial } from './useXTermSerial';
 import { XTerm } from './XTerm';
 import type { NewlineCharacter, XTermSerialOptions } from './XTermSerial';

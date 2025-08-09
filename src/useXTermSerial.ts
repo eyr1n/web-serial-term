@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { XTermSerial, type XTermSerialOptions } from './XTermSerial';
 
 export function useXTermSerial() {
@@ -9,24 +9,32 @@ export function useXTermSerial() {
   const [writer, setWriter] = useState<WritableStreamDefaultWriter<string>>();
   const [closed, setClosed] = useState(true);
 
-  return {
-    port,
-    reader,
-    writer,
-    closed,
-    open: (options: XTermSerialOptions) =>
+  const open = useCallback(
+    (options: XTermSerialOptions) =>
       serial.current.open(options).then((result) => {
         setPort(serial.current.port);
         setReader(serial.current.reader);
         setWriter(serial.current.writer);
         setClosed(!result);
       }),
-    close: () =>
-      serial.current.close().then(() => {
-        setPort(undefined);
-        setReader(undefined);
-        setWriter(undefined);
-        setClosed(true);
-      }),
+    [],
+  );
+
+  const close = useCallback(() => {
+    return serial.current.close().then(() => {
+      setPort(undefined);
+      setReader(undefined);
+      setWriter(undefined);
+      setClosed(true);
+    });
+  }, []);
+
+  return {
+    port,
+    reader,
+    writer,
+    closed,
+    open,
+    close,
   };
 }
