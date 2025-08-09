@@ -20,14 +20,16 @@ export function useXTermSerial() {
     [],
   );
 
-  const close = useCallback(() => {
-    return serial.current.close().then(() => {
-      setPort(undefined);
-      setReader(undefined);
-      setWriter(undefined);
-      setClosed(true);
-    });
-  }, []);
+  const close = useCallback(
+    () =>
+      serial.current.close().then(() => {
+        setPort(undefined);
+        setReader(undefined);
+        setWriter(undefined);
+        setClosed(true);
+      }),
+    [],
+  );
 
   return {
     port,
