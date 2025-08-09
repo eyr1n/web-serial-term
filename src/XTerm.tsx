@@ -2,19 +2,17 @@ import { FitAddon } from '@xterm/addon-fit';
 import { WebglAddon } from '@xterm/addon-webgl';
 import { Terminal } from '@xterm/xterm';
 import type React from 'react';
-import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
+import { useEffect, useImperativeHandle, useRef } from 'react';
 
 import '@xterm/xterm/css/xterm.css';
 
 export interface XTermProps extends React.HTMLAttributes<HTMLDivElement> {
+  ref: React.RefObject<Terminal | null>;
   reader?: ReadableStreamDefaultReader<string | Uint8Array>;
   writer?: WritableStreamDefaultWriter<string>;
 }
 
-export const XTerm = forwardRef<Terminal, XTermProps>(function XTerm(
-  { reader, writer, ...props }: XTermProps,
-  ref,
-) {
+export function XTerm({ ref, reader, writer, ...props }: XTermProps) {
   const container = useRef<HTMLDivElement>(null);
   const terminal = useRef(new Terminal());
 
@@ -85,7 +83,7 @@ export const XTerm = forwardRef<Terminal, XTermProps>(function XTerm(
   }, [writer]);
 
   return <div ref={container} {...props} />;
-});
+}
 
 function abortable<T>(promise: Promise<T>, signal: AbortSignal) {
   return new Promise<T>((resolve, reject) => {
