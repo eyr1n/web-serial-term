@@ -5,7 +5,7 @@ import {
   Terminal,
 } from '@xterm/xterm';
 
-export class StreamTerminal extends Terminal {
+export class TerminalWithStream extends Terminal {
   #readable: ReadableStream<string>;
   #writable: WritableStream<string | Uint8Array>;
   #unsubscribe?: IDisposable;

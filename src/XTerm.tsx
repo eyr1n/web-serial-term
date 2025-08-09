@@ -3,12 +3,12 @@ import { WebglAddon } from '@xterm/addon-webgl';
 import type { ITerminalInitOnlyOptions, ITerminalOptions } from '@xterm/xterm';
 import type React from 'react';
 import { useEffect, useRef } from 'react';
-import { StreamTerminal } from './StreamTerminal';
 
 import '@xterm/xterm/css/xterm.css';
+import { TerminalWithStream } from './terminal-with-stream';
 
 export interface XTermProps extends React.HTMLAttributes<HTMLDivElement> {
-  ref: React.RefObject<StreamTerminal | null>;
+  ref: React.RefObject<TerminalWithStream | null>;
   options?: ITerminalOptions & ITerminalInitOnlyOptions;
 }
 
@@ -19,7 +19,7 @@ export function XTerm({ ref, options, ...props }: XTermProps) {
     if (!container.current) {
       return;
     }
-    const terminal = new StreamTerminal(options);
+    const terminal = new TerminalWithStream(options);
     const webglAddon = new WebglAddon();
     const fitAddon = new FitAddon();
     terminal.loadAddon(webglAddon);

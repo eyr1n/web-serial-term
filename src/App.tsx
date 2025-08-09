@@ -9,7 +9,7 @@ import {
 } from '@mui/material';
 import { useLocalStorage } from '@uidotdev/usehooks';
 import { useMemo, useRef, useState } from 'react';
-import type { StreamTerminal } from './StreamTerminal';
+import type { TerminalWithStream } from './terminal-with-stream';
 import { XTerm } from './XTerm';
 
 const BAUD_RATE = [
@@ -57,7 +57,7 @@ export function App() {
     setBufferSize(DEFAULT_BUFFER_SIZE);
   };
 
-  const terminal = useRef<StreamTerminal>(null);
+  const terminal = useRef<TerminalWithStream>(null);
   //const { port, reader, writer, closed, open, close } = useXTermSerial();
 
   const disposeRef = useRef<() => void>(null);
