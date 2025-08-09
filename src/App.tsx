@@ -34,10 +34,48 @@ const DEFAULT_OPTIONS: SerialOptions & {
 };
 const DEFAULT_BUFFER_SIZE = '255';
 
-async function openSerialPort(options: SerialOptions): Promise<SerialPort> {
-  const port = await navigator.serial.requestPort();
-  await port.open(options);
-  return port;
+class Hoge {
+  #port?: SerialPort;
+  #controller?: AbortController;
+  #closed?: Promise<[PromiseSettledResult<void>, PromiseSettledResult<void>]>;
+
+  get port() {
+    return this.#port;
+  }
+
+  async open(options: SerialOptions, terminal: TerminalWithStream) {
+    this.#port = await navigator.serial.requestPort();
+    await this.#port.open(options);
+    if (!this.#port.readable || !this.#port.writable) {
+      throw new Error('The port is not readable and writable.');
+    }
+
+    this.#controller = new AbortController();
+    this.#closed = Promise.allSettled([
+      this.#port.readable.pipeTo(terminal.writable, {
+        signal: this.#controller.signal,
+        preventAbort: true,
+        preventClose: true,
+      }),
+      terminal.readable
+        .pipeThrough(new TextEncoderStream(), {
+          signal: this.#controller.signal,
+        })
+        .pipeTo(this.#port.writable, {
+          signal: this.#controller.signal,
+          preventCancel: true,
+        }),
+    ]);
+  }
+
+  async close() {
+    this.#controller?.abort();
+    this.#controller = undefined;
+    await this.#closed?.catch(() => {});
+    this.#closed = undefined;
+    await this.#port?.close();
+    this.#port = undefined;
+  }
 }
 
 export function App() {
@@ -58,70 +96,45 @@ export function App() {
   };
 
   const terminal = useRef<TerminalWithStream>(null);
-  //const { port, reader, writer, closed, open, close } = useXTermSerial();
-
-  const disposeRef = useRef<() => void>(null);
+  const hoge = useRef(new Hoge());
 
   const [closed, setClosed] = useState(true);
 
   const open = async () => {
-    const port = await openSerialPort(options);
-    if (!port.readable || !port.writable) {
-      throw new Error('The port is not readable and writable.');
-    }
-    const controller = new AbortController();
     if (!terminal.current) {
       return;
     }
-    terminal.current.options.convertEol = options.receiveNewline === 'LF';
-    const a = port.readable.pipeTo(terminal.current.writable, {
-      signal: controller.signal,
-      preventAbort: true,
-      preventClose: true,
-    });
-    const b = terminal.current.readable
-      .pipeThrough(new TextEncoderStream(), { signal: controller.signal })
-      .pipeTo(port.writable, {
-        signal: controller.signal,
-        preventCancel: true,
-      });
-
-    disposeRef.current = async () => {
-      controller.abort();
-      await a.catch(() => {});
-      await b.catch(() => {});
-      await port.close();
-      setClosed(true);
-      console.log('Port closed');
-    };
-
-    setClosed(false);
-    console.log('Port opened');
+    try {
+      terminal.current.options.convertEol = options.receiveNewline === 'LF';
+      await hoge.current.open(options, terminal.current);
+      const listener = () => {
+        alert('The device has been lost.');
+        hoge.current.close();
+        setClosed(true);
+      };
+      hoge.current.port?.addEventListener('disconnect', listener);
+      setClosed(false);
+    } catch (error) {
+      window.alert(error);
+    }
   };
 
   const close = async () => {
-    console.log('Closing port...');
-    disposeRef.current?.();
+    try {
+      await hoge.current.close();
+    } catch (error) {
+      window.alert(error);
+    }
+    setClosed(true);
   };
 
-  /*  useEffect(() => {
-    if (!port) {
-      return;
-    }
-    const listener = () => {
-      alert('The device has been lost.');
-      close();
-    };
-    port.addEventListener('disconnect', listener);
-    return () => {
-      port.removeEventListener('disconnect', listener);
-    };
-  }, [close, port]); */
+  const xtermOptions = useMemo(() => ({}), []);
 
   return (
     <Stack direction="row">
       <XTerm
         ref={terminal}
+        options={xtermOptions}
         style={{
           width: '100%',
           height: '100dvh',

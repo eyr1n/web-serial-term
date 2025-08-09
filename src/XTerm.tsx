@@ -1,105 +1,57 @@
 import { FitAddon } from '@xterm/addon-fit';
 import { WebglAddon } from '@xterm/addon-webgl';
+import { CanvasAddon } from '@xterm/addon-canvas';
 import type { ITerminalInitOnlyOptions, ITerminalOptions } from '@xterm/xterm';
 import type React from 'react';
-import { useEffect, useRef } from 'react';
-
-import '@xterm/xterm/css/xterm.css';
+import { memo, useEffect, useRef } from 'react';
 import { TerminalWithStream } from './terminal-with-stream';
 
-export interface XTermProps extends React.HTMLAttributes<HTMLDivElement> {
+import '@xterm/xterm/css/xterm.css';
+
+interface XTermProps extends React.HTMLAttributes<HTMLDivElement> {
   ref: React.RefObject<TerminalWithStream | null>;
   options?: ITerminalOptions & ITerminalInitOnlyOptions;
 }
 
-export function XTerm({ ref, options, ...props }: XTermProps) {
-  const container = useRef<HTMLDivElement>(null);
+export const XTerm = memo(function XTerm({
+  ref,
+  options,
+  ...props
+}: XTermProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!container.current) {
+    if (!containerRef.current) {
       return;
     }
     const terminal = new TerminalWithStream(options);
+    const canvasAddon = new CanvasAddon();
     const webglAddon = new WebglAddon();
     const fitAddon = new FitAddon();
-    terminal.loadAddon(webglAddon);
+    terminal.loadAddon(canvasAddon);
+    // terminal.loadAddon(webglAddon);
     terminal.loadAddon(fitAddon);
-    terminal.open(container.current);
+    terminal.open(containerRef.current);
     fitAddon.fit();
     ref.current = terminal;
 
-    const listener = webglAddon.onContextLoss(() => {
+    const unsubscribe = webglAddon.onContextLoss(() => {
       webglAddon.dispose();
     });
     const observer = new ResizeObserver(() => {
       fitAddon.fit();
     });
-    observer.observe(container.current);
+    observer.observe(containerRef.current);
 
     return () => {
-      observer.disconnect();
-      listener.dispose();
-      webglAddon.dispose();
-      fitAddon.dispose();
-      terminal.dispose();
       ref.current = null;
+      observer.disconnect();
+      unsubscribe.dispose();
+      fitAddon.dispose();
+      webglAddon.dispose();
+      terminal.dispose();
     };
   }, [ref, options]);
 
-  /* useEffect(() => {
-    const controller = new AbortController();
-    if (readable && ref.current) {
-      readable.pipeTo(ref.current.writable, { signal: controller.signal });
-    }
-    if (writable) {
-      ref.current?.readable.pipeTo(writable, { signal: controller.signal });
-    }
-    return () => {
-      controller.abort();
-    };
-  }, [readable, writable, ref]);
- */
-  return <div ref={container} {...props} />;
-}
-/* 
-import { Terminal } from '@xterm/xterm';
-
-export class StreamTerminal extends Terminal {
-  pipeToReader(reader: ReadableStreamDefaultReader<string | Uint8Array>) {
-    const controller = new AbortController();
-    const readLoop = ({
-      value,
-      done,
-    }: ReadableStreamReadResult<string | Uint8Array>) => {
-      if (done) {
-        reader.releaseLock();
-        return;
-      }
-      this.write(value);
-      abortable(reader.read(), controller.signal)
-        .then(readLoop)
-        .catch(() => {});
-    };
-    abortable(reader.read(), controller.signal)
-      .then(readLoop)
-      .catch(() => {});
-    return () => {
-      controller.abort();
-    };
-  }
-
-  pipeToWriter(writer: WritableStreamDefaultWriter<string>) {
-    const onData = this.onData((data) => writer.write(data));
-    return () => {
-      onData.dispose();
-    };
-  }
-}
-
-function abortable<T>(promise: Promise<T>, signal: AbortSignal) {
-  return new Promise<T>((resolve, reject) => {
-    signal.addEventListener('abort', reject, { once: true });
-    promise.then(resolve, reject);
-  });
-}
- */
+  return <div ref={containerRef} {...props} />;
+});
