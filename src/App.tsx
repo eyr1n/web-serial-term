@@ -11,6 +11,7 @@ import { useLocalStorage } from '@uidotdev/usehooks';
 import { useMemo, useRef, useState } from 'react';
 import type { TerminalWithStream } from './terminal-with-stream';
 import { XTerm } from './XTerm';
+import { CharacterReplaceStream } from './character-replace-stream';
 
 const BAUD_RATE = [
   110, 300, 600, 1200, 2400, 4800, 9600, 14400, 19200, 38400, 57600, 115200,
@@ -58,6 +59,9 @@ class Hoge {
         preventClose: true,
       }),
       terminal.readable
+        .pipeThrough(new CharacterReplaceStream('\r', '\r\n'), {
+          signal: this.#controller.signal,
+        })
         .pipeThrough(new TextEncoderStream(), {
           signal: this.#controller.signal,
         })
