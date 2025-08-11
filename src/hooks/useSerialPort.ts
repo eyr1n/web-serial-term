@@ -59,9 +59,7 @@ export function useSerialPort() {
           try {
             abortController.abort();
             await streamClosed.catch(() => {});
-            if (port.connected) {
-              await port.close();
-            }
+            await port.close();
           } finally {
             port.removeEventListener('disconnect', onDisconnect);
             setConnected(false);
