@@ -16,10 +16,6 @@ export function useSerialPort() {
       if (!port) {
         return;
       }
-      port.addEventListener('disconnect', () => {
-        window.alert('The device has been lost.');
-        setIsOpen(false);
-      });
 
       try {
         await port.open(config.serialOptions);
@@ -50,7 +46,7 @@ export function useSerialPort() {
             }),
         ]);
 
-        closeRef.current = async () => {
+        const close = async () => {
           try {
             abortController.abort();
             await streamClosed.catch(() => {});
@@ -61,6 +57,12 @@ export function useSerialPort() {
           setIsOpen(false);
         };
 
+        port.addEventListener('disconnect', async () => {
+          window.alert('The device has been lost.');
+          await close();
+        });
+
+        closeRef.current = close;
         setIsOpen(true);
       } catch (error) {
         window.alert(error);
