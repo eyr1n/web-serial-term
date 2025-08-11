@@ -154,7 +154,9 @@ export function App() {
           color="error"
           disabled={!closed}
           onClick={() => {
-            setConfig(DEFAULT_CONFIG);
+            if (window.confirm('Are you sure you want to reset the config?')) {
+              setConfig(DEFAULT_CONFIG);
+            }
           }}
         >
           Reset config
