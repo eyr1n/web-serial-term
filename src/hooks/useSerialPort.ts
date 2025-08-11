@@ -32,13 +32,22 @@ export function useSerialPort() {
           }),
           readable
             .pipeThrough(
-              new CharacterReplaceStream('\r', config.transmitNewline),
+              new CharacterReplaceStream(
+                '\r',
+                config.transmitNewline === 'CR'
+                  ? '\r'
+                  : config.transmitNewline === 'LF'
+                    ? '\n'
+                    : '\r\n',
+              ),
               {
                 signal: abortController.signal,
+                preventCancel: true,
               },
             )
             .pipeThrough(new TextEncoderStream(), {
               signal: abortController.signal,
+              preventCancel: true,
             })
             .pipeTo(port.writable, {
               signal: abortController.signal,
