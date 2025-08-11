@@ -18,6 +18,12 @@ export function useSerialPort() {
       }
 
       try {
+        const onDisconnect = async () => {
+          window.alert('The device has been lost.');
+          await close();
+        };
+        port.addEventListener('disconnect', onDisconnect);
+
         await port.open(config.serialOptions);
         if (!port.readable || !port.writable) {
           throw new Error('The port is not readable and writable.');
@@ -54,14 +60,10 @@ export function useSerialPort() {
               await port.close();
             }
           } finally {
+            port.removeEventListener('disconnect', onDisconnect);
             setConnected(false);
           }
         };
-
-        port.addEventListener('disconnect', async () => {
-          window.alert('The device has been lost.');
-          await close();
-        });
 
         closeRef.current = close;
         setConnected(true);
