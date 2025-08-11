@@ -3,7 +3,7 @@ import { FitAddon } from '@xterm/addon-fit';
 import type { ITerminalInitOnlyOptions, ITerminalOptions } from '@xterm/xterm';
 import type React from 'react';
 import { memo, useEffect, useRef } from 'react';
-import { TerminalWithStream } from './terminal-with-stream';
+import { TerminalWithStream } from '../terminal-with-stream';
 
 import '@xterm/xterm/css/xterm.css';
 
