@@ -10,7 +10,7 @@ import type { TerminalWithStream } from './terminal-with-stream';
 export function App() {
   const [config, setConfig] = useLocalStorage('config', DEFAULT_CONFIG);
   const terminalRef = useRef<TerminalWithStream>(null);
-  const { open, close, isOpen } = useSerialPort();
+  const { open, close, connected } = useSerialPort();
 
   return (
     <Stack direction="row">
@@ -38,19 +38,19 @@ export function App() {
           <ConfigInput
             config={config}
             setConfig={setConfig}
-            disabled={isOpen}
+            disabled={connected}
           />
 
           <Button
             variant="contained"
-            color={isOpen ? 'secondary' : 'success'}
+            color={connected ? 'secondary' : 'success'}
             disabled={config.serialOptions.baudRate < 1}
             onClick={async () => {
               if (!terminalRef.current) {
                 return;
               }
               try {
-                if (isOpen) {
+                if (connected) {
                   await close();
                 } else {
                   terminalRef.current.options.convertEol =
@@ -66,7 +66,7 @@ export function App() {
               }
             }}
           >
-            {isOpen ? 'Close' : 'Open'} port
+            {connected ? 'Close' : 'Open'} port
           </Button>
 
           <Button
@@ -80,7 +80,7 @@ export function App() {
         <Button
           variant="contained"
           color="error"
-          disabled={isOpen}
+          disabled={connected}
           onClick={() => {
             if (window.confirm('Are you sure you want to reset the config?')) {
               setConfig(DEFAULT_CONFIG);

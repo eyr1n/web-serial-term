@@ -4,7 +4,7 @@ import type { Config } from '../config';
 
 export function useSerialPort() {
   const closeRef = useRef<() => Promise<void>>(null);
-  const [isOpen, setIsOpen] = useState(false);
+  const [connected, setConnected] = useState(false);
 
   const open = useCallback(
     async (
@@ -50,11 +50,12 @@ export function useSerialPort() {
           try {
             abortController.abort();
             await streamClosed.catch(() => {});
-            await port.close();
-          } catch (error) {
-            window.alert(error);
+            if (port.connected) {
+              await port.close();
+            }
+          } finally {
+            setConnected(false);
           }
-          setIsOpen(false);
         };
 
         port.addEventListener('disconnect', async () => {
@@ -63,7 +64,7 @@ export function useSerialPort() {
         });
 
         closeRef.current = close;
-        setIsOpen(true);
+        setConnected(true);
       } catch (error) {
         window.alert(error);
       }
@@ -75,5 +76,5 @@ export function useSerialPort() {
     await closeRef.current?.();
   }, []);
 
-  return { open, close, isOpen };
+  return { open, close, connected };
 }
