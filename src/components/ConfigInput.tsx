@@ -41,6 +41,7 @@ export function ConfigInput({ config, setConfig, disabled }: SidePanelProps) {
         freeSolo
         fullWidth
         disableClearable
+        disabled={disabled}
         options={BAUD_RATE.map((baudRate) => baudRate.toString())}
         inputValue={
           config.serialOptions.baudRate < 0
