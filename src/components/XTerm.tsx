@@ -42,6 +42,7 @@ export const XTerm = memo(function XTerm({
       ref.current = null;
       observer.disconnect();
       fitAddon.dispose();
+      canvasAddon.dispose();
       terminal.dispose();
     };
   }, [ref, options]);
