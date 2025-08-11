@@ -6,7 +6,7 @@ export interface Config {
 
 export const DEFAULT_CONFIG: Config = {
   serialOptions: {
-    baudRate: 11,
+    baudRate: 115200,
     dataBits: 8,
     stopBits: 1,
     parity: 'none',

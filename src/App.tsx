@@ -136,7 +136,7 @@ export function App() {
           <Button
             variant="contained"
             color={closed ? 'success' : 'secondary'}
-            //disabled={bufferSizeError}
+            disabled={config.serialOptions.baudRate < 1}
             onClick={
               closed ? () => open().catch(alert) : () => close().catch(alert)
             }

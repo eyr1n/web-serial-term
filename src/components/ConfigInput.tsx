@@ -1,9 +1,11 @@
 import {
+  Autocomplete,
   FormControl,
   InputLabel,
   MenuItem,
   Select,
   Stack,
+  TextField,
 } from '@mui/material';
 import { type Dispatch, type SetStateAction, useCallback } from 'react';
 import type { Config } from '../config';
@@ -35,39 +37,35 @@ export function ConfigInput({ config, setConfig, disabled }: SidePanelProps) {
 
   return (
     <Stack spacing={2}>
-      <FormControl fullWidth>
-        <InputLabel>Baud rate</InputLabel>
-        <Select
-          label="Baud rate"
-          disabled={disabled}
-          value={config.serialOptions.baudRate}
-          onChange={(event) => {
+      <Autocomplete
+        freeSolo
+        fullWidth
+        disableClearable
+        options={BAUD_RATE.map((baudRate) => baudRate.toString())}
+        inputValue={
+          config.serialOptions.baudRate < 0
+            ? ''
+            : config.serialOptions.baudRate.toString()
+        }
+        onInputChange={(_, value) => {
+          if (/^[0-9]*$/.test(value)) {
             updateConfig((config) => {
-              config.serialOptions.baudRate = event.target.value;
+              const parsed = Number.parseInt(value);
+              config.serialOptions.baudRate = Number.isNaN(parsed)
+                ? -1
+                : parsed;
               return config;
             });
-          }}
-        >
-          {BAUD_RATE.map((x) => (
-            <MenuItem key={x} value={x}>
-              {x}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-      {/* <FormControl fullWidth>
-              <TextField
-                label="Buffer size"
-                error={bufferSizeError}
-                disabled={!closed}
-                value={bufferSize}
-                onChange={(e) => {
-                  if (/^[0-9]*$/.test(e.target.value)) {
-                    setBufferSize(e.target.value);
-                  }
-                }}
-              />
-            </FormControl> */}
+          }
+        }}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            label="Baud rate"
+            error={config.serialOptions.baudRate < 1}
+          />
+        )}
+      />
 
       <Stack direction="row" spacing={2}>
         <FormControl fullWidth>
