@@ -71,7 +71,7 @@ export function App() {
 
           <Button
             variant="contained"
-            color="error"
+            color="secondary"
             onClick={() => terminalRef.current?.reset()}
           >
             Reset terminal
