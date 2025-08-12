@@ -71,9 +71,34 @@ export function App() {
 
           <Button
             variant="contained"
+            color="error"
             onClick={() => terminalRef.current?.reset()}
           >
             Reset terminal
+          </Button>
+
+          <Button
+            variant="contained"
+            onClick={async () => {
+              if (!terminalRef.current) {
+                return;
+              }
+
+              terminalRef.current.selectAll();
+              const text = terminalRef.current.getSelection();
+              terminalRef.current.clearSelection();
+
+              const writable = await window
+                .showSaveFilePicker()
+                .then((handle) => handle.createWritable());
+              await new Blob([text], { type: 'text/plain' })
+                .stream()
+                .pipeTo(writable);
+
+              window.alert('Log downloaded successfully.');
+            }}
+          >
+            Download log
           </Button>
         </Stack>
 
